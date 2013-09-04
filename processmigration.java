@@ -1,1 +1,4 @@
-MigratableProcess extends java.lang.Runable
+public interface MigratableProcess extends java.lang.Runnable, java.io.Serializable
+{
+
+}
