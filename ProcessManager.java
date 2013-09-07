@@ -24,6 +24,8 @@ public class ProcessManager {
 	\\ the cmd line and check the socket input stream for messages 
 	\\ to act on from the server
 
+	\\ Also when we quit, we should tell the server
+
 	try {
 	    command = br.readLine();
 	    while(command != null){
