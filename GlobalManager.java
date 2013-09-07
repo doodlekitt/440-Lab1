@@ -7,11 +7,40 @@ import java.util.Hashtable;
 
 public class GlobalManager {
 
-    public static void main(String args[]) {
-	private static ServerSocket GM = null;
-	Hashtable<String, Socket> clients = new Hashtable<String, Socket>();
-    }
+    private static ServerSocket GM = null;
+    private static Socket PM = null;
+
+    Hashtable<String, Socket> clients = new Hashtable<String, Socket>();
+	
     // THERE SHOULD PROBABLY BE A METHOD THAT CHECKS THE TABLE AND REMOVES
     // TERMINATED CONNECTIONS
+
+    public static void main(String args[]) {
+	
+	int portNumber = 6783;
+	if(args.length < 1) {
+	    System.out.println("Global Process Manager: Port " + portNumber);
+	}
+	else{
+	    portNumber = Integer.valueOf(args[0]).intValue();
+	    System.out.println("Global Process Manager: Port " + portNumber);
+	}
+	
+	try{
+	    GM = new ServerSocket(portNumber);
+	} catch (IOException e) {
+	    System.out.println(e);
+	}
+
+	while(true){
+	    try{
+		clientSocket = serverSocket.accept();
+		int k = 0;
+		
+	    } catch (IOException e) {
+		System.out.println(e);
+	    }
+	}
+    }
 
 }
