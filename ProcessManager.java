@@ -12,6 +12,14 @@ public class ProcessManager {
 	private PrintStream os = null;
 	private Socket PMSocket = null;
 	
+	private DataInputStream is = null;
+	private DataOutputStream os = null;
+
+	\\ MAY HAVE TO PUT ALL OF THAT OUTSIDE THE MAIN FUNCTION ^
+	\\ NEED TO PUT PORTNUMBER IDK 
+
+	\\ Error checking here?
+	PMSocket = new Socket("localhost", portNumber);
 
 	String command = null;
 
@@ -27,6 +35,9 @@ public class ProcessManager {
 	\\ Also when we quit, we should tell the server
 
 	try {
+	    is = new DataInputStream(PMSocket.getInputStream());
+	    os = new DataOutputStream(PMSocket.getOutputStream());
+
 	    command = br.readLine();
 	    while(command != null){
 		if(command.startsWith("quit"))
