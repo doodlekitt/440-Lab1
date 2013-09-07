@@ -11,5 +11,7 @@ public class GlobalManager {
 	private static ServerSocket GM = null;
 	Hashtable<String, Socket> clients = new Hashtable<String, Socket>();
     }
+    // THERE SHOULD PROBABLY BE A METHOD THAT CHECKS THE TABLE AND REMOVES
+    // TERMINATED CONNECTIONS
 
 }
