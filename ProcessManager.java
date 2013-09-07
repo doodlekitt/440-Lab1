@@ -50,7 +50,15 @@ public class ProcessManager {
     }
 
     public void execute(String command) {
-	if(command.startsWith("new"));
+	if(command.startsWith("new")){
+
+	} else if (command.startsWith("migrate")){
+
+	} else if (command.startsWith("query")){
+
+	} else {
+	     System.out.println("Invalid Command");
+	}
     }
 
 }
