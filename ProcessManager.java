@@ -2,23 +2,23 @@ import java.io.*;
 
 public class ProcessManager {
 
+    private DataInputStream is = null;
+    private PrintStream os = null;
+    private Socket PMSocket = null;
+
+    private DataInputStream is = null;
+    private DataOutputStream os = null;
+
     public static void main (String[] args) {
 	System.out.println("Available Commands");
 
 	System.out.println("Create New Process: new <Class> <nickname>\n Move Process: migrate <nickname> <target>\n Server Client Query: query\n Exit Program: quit\n"); 
    	
 	BufferedReader br =new BufferedReader(new InputStreamReader(System.in));
-	private DataInputStream is = null;
-	private PrintStream os = null;
-	private Socket PMSocket = null;
-	
-	private DataInputStream is = null;
-	private DataOutputStream os = null;
 
-	// MAY HAVE TO PUT ALL OF THAT OUTSIDE THE MAIN FUNCTION ^
 	// NEED TO PUT PORTNUMBER IDK 
 
-	/ Error checking here?
+	// Error checking here?
 	PMSocket = new Socket("localhost", portNumber);
 
 	String command = null;
