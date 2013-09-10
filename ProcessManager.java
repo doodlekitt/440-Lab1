@@ -15,24 +15,24 @@ public class ProcessManager {
 	private DataInputStream is = null;
 	private DataOutputStream os = null;
 
-	\\ MAY HAVE TO PUT ALL OF THAT OUTSIDE THE MAIN FUNCTION ^
-	\\ NEED TO PUT PORTNUMBER IDK 
+	// MAY HAVE TO PUT ALL OF THAT OUTSIDE THE MAIN FUNCTION ^
+	// NEED TO PUT PORTNUMBER IDK 
 
-	\\ Error checking here?
+	/ Error checking here?
 	PMSocket = new Socket("localhost", portNumber);
 
 	String command = null;
 
-	\\ Needs to read in commands and execute until it is told to die
-	\\ THE EXECUTE COMMAND SHOULD MAKE AND START THE THING
-	\\ WHERE DO WE STORE THEM THOUGH AND IF WE STORE WE SHOULD
-	\\ REMOVE WHEN THEY ARE DONE
+	// Needs to read in commands and execute until it is told to die
+	// THE EXECUTE COMMAND SHOULD MAKE AND START THE THING
+	// WHERE DO WE STORE THEM THOUGH AND IF WE STORE WE SHOULD
+	// REMOVE WHEN THEY ARE DONE
 
-	\\ Basically, the PM has to check both the buffered reader for input 
-	\\ the cmd line and check the socket input stream for messages 
-	\\ to act on from the server
+	// Basically, the PM has to check both the buffered reader for input 
+	// the cmd line and check the socket input stream for messages 
+	// to act on from the server
 
-	\\ Also when we quit, we should tell the server
+	// Also when we quit, we should tell the server
 
 	try {
 	    is = new DataInputStream(PMSocket.getInputStream());
