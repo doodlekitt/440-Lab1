@@ -7,7 +7,7 @@ import java.util.Hashtable;
 
 public class GlobalManager {
 
-    private static ServerSocket GM = null;
+    private static ServerSocket server = null;
     private static Socket PM = null;
 
     Hashtable<String, Socket> clients = new Hashtable<String, Socket>();
@@ -27,16 +27,16 @@ public class GlobalManager {
 	}
 	
 	try{
-	    GM = new ServerSocket(portNumber);
+	    server = new ServerSocket(portNumber);
 	} catch (IOException e) {
 	    System.out.println(e);
 	}
 
+        Socket clientSocket = null;
 	while(true){
 	    try{
-		clientSocket = serverSocket.accept();
+		clientSocket = server.accept();
 		int k = 0;
-		
 	    } catch (IOException e) {
 		System.out.println(e);
 	    }

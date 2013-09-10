@@ -1,9 +1,9 @@
 import java.io.*;
+import java.net.Socket;
+
 
 public class ProcessManager {
 
-    private DataInputStream is = null;
-    private PrintStream os = null;
     private Socket PMSocket = null;
 
     private DataInputStream is = null;
