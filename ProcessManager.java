@@ -9,7 +9,7 @@ public class ProcessManager {
     private DataInputStream is = null;
     private DataOutputStream os = null;
 
-    public static void main (String[] args) {
+    public void main (String[] args) {
 	System.out.println("Available Commands");
 
 	System.out.println("Create New Process: new <Class> <nickname>\n Move Process: migrate <nickname> <target>\n Server Client Query: query\n Exit Program: quit\n"); 
@@ -17,9 +17,14 @@ public class ProcessManager {
 	BufferedReader br =new BufferedReader(new InputStreamReader(System.in));
 
 	// NEED TO PUT PORTNUMBER IDK 
+        int portNumber = 8777;
 
 	// Error checking here?
-	PMSocket = new Socket("localhost", portNumber);
+	try {
+            PMSocket = new Socket("localhost", portNumber);
+        } catch (IOException e) {
+            System.out.println(e);
+        }
 
 	String command = null;
 
@@ -53,10 +58,14 @@ public class ProcessManager {
 	}
 	
 	// Clean up is last
-	os.close();
-	is.close();
-	br.close();
-	PMSocket.close();
+	try {
+            os.close();
+            is.close();
+            br.close();
+            PMSocket.close();
+        } catch (IOException e) {
+            System.out.println(e);
+        }
 
     }
 
