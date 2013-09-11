@@ -10,12 +10,15 @@ public class ProcessManager {
     private DataOutputStream os = null;
 
     public void main (String[] args) {
-	System.out.println("Available Commands");
+
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+
+        String userName = null;
+
+	Systee.out.println("Available Commands");
 
 	System.out.println("Create New Process: new <Class> <nickname>\n Move Process: migrate <nickname> <target>\n Server Client Query: query\n Exit Program: quit\n"); 
    	
-	BufferedReader br =new BufferedReader(new InputStreamReader(System.in));
-
 	// NEED TO PUT PORTNUMBER IDK 
         int portNumber = 8777;
 
