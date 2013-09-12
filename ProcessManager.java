@@ -1,53 +1,48 @@
 import java.io.*;
 import java.net.Socket;
-
+import java.net.ServerSocket;
+import java.util.Hashtable;
 
 public class ProcessManager {
 
-    private Socket PMSocket = null;
 
-    private DataInputStream is = null;
-    private DataOutputStream os = null;
+    private static int port = 0;
+    private static ServerSocket server = null;
+    private static ObjectInputStream is = null;
+    private static ObjectOutputStream os = null;
 
-    public void main (String[] args) {
+    private static Hashtable<Integer, Socket> clients =
+        new Hashtable<Integer, Socket>();
 
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+    public static void main (String[] args) throws IOException {
 
-        String userName = null;
-
-	Systee.out.println("Available Commands");
-
-	System.out.println("Create New Process: new <Class> <nickname>\n Move Process: migrate <nickname> <target>\n Server Client Query: query\n Exit Program: quit\n"); 
-   	
-	// NEED TO PUT PORTNUMBER IDK 
-        int portNumber = 8777;
-
-	// Error checking here?
-	try {
-            PMSocket = new Socket("localhost", portNumber);
-        } catch (IOException e) {
-            System.out.println(e);
+        // Parse args
+        if (args.length < 1) {
+            System.out.println("Expecting command of the form:");
+            System.out.println("ProcessManager <port>");
+            System.out.println("Where <port> is the port for the new ProcessManager.");
+            return;
         }
+        
+        // Create ServerSocket
+        port = Integer.valueOf(args[0]).intValue();
+        server = new ServerSocket(port);
 
-	String command = null;
+        // Run server to listen to slaves
+        AcceptRunnable accept = new AcceptRunnable();
+        Thread acceptThread = new Thread(accept);
+        acceptThread.start();
 
-	// Needs to read in commands and execute until it is told to die
-	// THE EXECUTE COMMAND SHOULD MAKE AND START THE THING
-	// WHERE DO WE STORE THEM THOUGH AND IF WE STORE WE SHOULD
-	// REMOVE WHEN THEY ARE DONE
-
-	// Basically, the PM has to check both the buffered reader for input 
-	// the cmd line and check the socket input stream for messages 
-	// to act on from the server
-
-	// Also when we quit, we should tell the server
-
+        // Listen to command line
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String command = null;
 	try {
-	    is = new DataInputStream(PMSocket.getInputStream());
-	    os = new DataOutputStream(PMSocket.getOutputStream());
+	    // is = new ObjectInputStream(PMSocket.getInputStream());
+	    // os = new ObjectOutputStream(PMSocket.getOutputStream());
 
-	    command = br.readLine();
-	    while(command != null){
+	    while (true){
+                command = br.readLine();
+
 		if(command.startsWith("quit"))
 		{
 		    break;
@@ -59,29 +54,66 @@ public class ProcessManager {
 	} catch (IOException e) {
 	    System.out.println(e);
 	}
-	
+
 	// Clean up is last
+        accept.stop();
 	try {
-            os.close();
-            is.close();
+            // os.close();
+            // is.close();
+            server.close();
             br.close();
-            PMSocket.close();
         } catch (IOException e) {
             System.out.println(e);
         }
-
     }
 
-    public void execute(String command) {
+    private static class AcceptRunnable implements Runnable {
+
+        private static boolean flag = true;
+
+        public void stop() {
+            flag = false;
+        }
+
+        public void run() {
+            Socket clientSocket = null;
+            while(flag){
+                try{
+                    clientSocket = server.accept();
+                    // Read from socket
+                    clients.put(clientSocket.getPort(), clientSocket);
+                } catch (IOException e) {
+                    // Don't print exception when stopping thread
+                    if(flag) {
+                        System.out.println(e);
+                    }
+                }
+            }
+        }
+
+        public static void main(String ags[]) {
+            (new Thread(new AcceptRunnable())).start();
+        }
+    }
+
+    public static void execute(String command) {
 	if(command.startsWith("new")){
 
-	} else if (command.startsWith("migrate")){
-
+	} else if (command.startsWith("list")){
+            list_slaves();
 	} else if (command.startsWith("query")){
 
 	} else {
 	     System.out.println("Invalid Command");
 	}
+        return;
     }
 
+    private static void list_slaves() {
+        System.out.println("Printing slaves:");
+        for (Integer key : clients.keySet()) {
+            System.out.println("Slave " + key + ": " + clients.get(key));
+        }
+        return;
+    } 
 }
