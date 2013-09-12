@@ -1,4 +1,6 @@
-public class PMPackage {
+import java.io.*;
+
+public class PMPackage implements Serializable{
 
     private String command; // migrate or start
     private String target; // where to send it, can be empty

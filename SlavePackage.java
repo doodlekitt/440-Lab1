@@ -1,5 +1,6 @@
+import java.io.*;
 
-public class SlavePackage {
+public class SlavePackage implements Serializable{
     
     private String message;
     private String target;
