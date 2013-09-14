@@ -1,21 +1,24 @@
 import java.io.*;
+import java.lang.reflect.Constructor;
 
 public class Package {
 
     public enum Command {
-        START, MIGRATE;
+        NEW, MIGRATE, START;
     }
 
     public class PMPackage implements Serializable{
 
         private Command command;
         private int target; // where to send it
-        private String process;
+        private Constructor process;
+        private String[] args;
 
-        public PMPackage(Command com, int tar, String proc){
-            command = com;
-            target = tar;
-            process = proc;
+        public PMPackage(Command com, int tar, Constructor proc, String[] arg){
+            this.command = com;
+            this.target = tar;
+            this.process = proc;
+            this.args = arg;
         }
 
         public Command command(){
@@ -26,7 +29,7 @@ public class Package {
             return this.target;
         }
 
-        public String process(){
+        public Constructor process(){
             return this.process;
         }
     }
@@ -38,18 +41,18 @@ public class Package {
         private int target;
         private String filePath;
 
-        // For use after START or failed MIGRATE
+        // For use after NEW or failed MIGRATE
         public SlavePackage (Command com, boolean suc) {
-            command = com;
-            success = suc;
+            this.command = com;
+            this.success = suc;
         }
 
         // For use in MIGRATE replies
         public SlavePackage (Command com, int tar, String path, boolean suc){
-            command = com;
-            target = tar;
-            filePath = path;
-            success = suc;
+            this.command = com;
+            this.target = tar;
+            this.filePath = path;
+            this.success = suc;
         }
 
         public boolean success() {
