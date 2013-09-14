@@ -2,6 +2,7 @@ import java.io.*;
 import java.net.Socket;
 import java.net.ServerSocket;
 import java.util.Hashtable;
+import java.lang.*;
 
 public class ProcessManager {
 
@@ -37,8 +38,8 @@ public class ProcessManager {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         String command = null;
 	try {
-	    // is = new ObjectInputStream(PMSocket.getInputStream());
-	    // os = new ObjectOutputStream(PMSocket.getOutputStream());
+	    is = new ObjectInputStream(PMSocket.getInputStream());
+	    os = new ObjectOutputStream(PMSocket.getOutputStream());
 
 	    while (true){
                 command = br.readLine();
@@ -48,8 +49,12 @@ public class ProcessManager {
 		    break;
 		}
 		else{
+		    // execute should probably also take the os so that you can
+		    // send appropriate messages based on the command
 		    execute(command);
 		}
+
+		//probably here we add listening on the socket for stuff
 	    }
 	} catch (IOException e) {
 	    System.out.println(e);
@@ -58,8 +63,8 @@ public class ProcessManager {
 	// Clean up is last
         accept.stop();
 	try {
-            // os.close();
-            // is.close();
+            os.close();
+            is.close();
             server.close();
             br.close();
         } catch (IOException e) {
@@ -98,6 +103,23 @@ public class ProcessManager {
 
     public static void execute(String command) {
 	if(command.startsWith("new")){
+	    String[] arg = command.split(" ");
+	    boolean migratable = false;
+
+	    // check if implements MigratableProcess
+	    for(Class<?> i : (Class.forName(arg[1])).getInterfaces()){
+		if(i.isInstance(MigratableProcess))
+		    migratable = true;
+	    }
+
+	    // if not, break
+	    if(!migratable){
+		System.out.println("Invalid Class");
+		break;
+	    }
+
+	    //else, create new process requested
+	    // The arguments are a subarray of arg
 
 	} else if (command.startsWith("list")){
             list_slaves();
