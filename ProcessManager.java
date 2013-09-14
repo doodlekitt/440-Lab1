@@ -120,6 +120,14 @@ public class ProcessManager {
 
 	    //else, create new process requested
 	    // The arguments are a subarray of arg
+	    // I dunno how to do this for String[]
+
+	    String[] process_args = Arrays.copyOfRange(arg, 2, );
+	    Constructor<?> constructor = (Class.forName(arg[1])).getConstructor(String[].class);
+	 
+	    // if you send it, then you should be able to make a new one by
+	    // constructor.newInstance(process_args) 
+
 
 	} else if (command.startsWith("list")){
             list_slaves();
