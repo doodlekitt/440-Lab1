@@ -19,7 +19,7 @@ public class Package {
         private MigratableProcess process;
         // For migrating a process
         private int target;
-        private int thread;
+        private long thread;
         // For starting a proces
         private String path;
 
@@ -35,7 +35,7 @@ public class Package {
         }
 
         // For MIGRATE
-        public PMPackage(Command com, int tar, int thread) {
+        public PMPackage(Command com, int tar, long thread) {
             this.command = com;
             this.target = tar;
             this.thread = thread;
@@ -60,7 +60,7 @@ public class Package {
             return this.target;
         }
 
-        public int thread(){
+        public long thread(){
             return this.thread;
         }
 
