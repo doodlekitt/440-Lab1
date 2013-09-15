@@ -43,11 +43,11 @@ public class GrepProcess implements MigratableProcess
 				}
 				
 				// Make grep take longer so that we don't require extremely large files for interesting results
-				try {
+				/*try {
 					Thread.sleep(100);
 				} catch (InterruptedException e) {
 					// ignore it
-				}
+				}*/
 			}
 		} catch (EOFException e) {
 			//End of File

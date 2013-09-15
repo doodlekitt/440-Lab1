@@ -65,6 +65,7 @@ public class Slave implements java.io.Serializable {
                     case NEW: send = newThread(recieve);
                               break;
                     case THREADS: send = listThreads(recieve);
+                                  System.out.println(send.message());
                                   break;
                     default: break;
                 }
@@ -94,8 +95,11 @@ public class Slave implements java.io.Serializable {
     private static Package.SlavePackage listThreads(Package.PMPackage recieve) {
         String message = "Printing Threads:\n";
         for (Long key : threads.keySet()) {
-            message.concat("Threads "+key+": "+threads.get(key).getName()+"\n");
+            System.out.println("In for loop");
+            message = message + "Threads "+key+"\n";
         }
+
+        System.out.println(threads.toString());
 
         return new Package.SlavePackage(Package.Command.THREADS, message, true);
     }
@@ -105,6 +109,7 @@ public class Slave implements java.io.Serializable {
         Runnable task = null;
         Thread thread = null;
 
+        System.out.println("TEST3");
         if (recieve == null || recieve.process() == null) {
             // Return failure
             success = false;
@@ -114,6 +119,8 @@ public class Slave implements java.io.Serializable {
             thread = new Thread(task);
             threads.put(thread.getId(), thread);
             thread.start();
+            System.out.println("Thread:"+ thread.getId());
+            System.out.println(threads.toString());
         }
 
         return new Package.SlavePackage(Package.Command.NEW, success);
