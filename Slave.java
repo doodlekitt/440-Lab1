@@ -9,6 +9,8 @@ import java.util.Hashtable;
 
 public class Slave implements java.io.Serializable {
 
+    private static boolean alive = true;
+
     private static String pmHost = "";
     private static int pmPort = 0;
 
@@ -27,27 +29,44 @@ public class Slave implements java.io.Serializable {
 	else {
             pmHost = args[0];
             pmPort = Integer.valueOf(args[1]).intValue();
+            System.out.println("Connecting at " + pmHost + " " + pmPort);
 	}
 
         // Set up sockets for listening and sending
 	try {
             PM = new Socket(pmHost, pmPort);
+            System.out.println("Connection successful");
+try {
+    Thread.sleep(1000);
+} catch(InterruptedException ex) {
+    Thread.currentThread().interrupt();
+}
             is = new ObjectInputStream(PM.getInputStream());
             os = new ObjectOutputStream(PM.getOutputStream());
 	} catch (IOException e) {
+cation: class ProcessManager
+ProcessManager.java:198: error: cannot find symbol
+            
 	    System.out.println(e);
 	}
 
-        SlavePackage send = new SlavePackage();
-        PMPackage recieve = null;
+        Package.PMPackage recieve = null;
 
-        os.writeObject(send);
+        while(alive) {
+            try {
+                recieve = (Package.PMPackage)is.readObject();
+            }
+            catch (ClassNotFoundException e) {
+                System.out.println(e);
+            }
 
-        try {
-            recieve = (PMPackage)is.readObject();
-        }
-        catch (ClassNotFoundException e) {
-            System.out.println(e);
+            if (recieve != null) {
+                switch (recieve.command()) {
+                    case KILL: kill();
+                         break;
+                    default: break;
+                }
+            }
         }
 
         try {
@@ -59,4 +78,17 @@ public class Slave implements java.io.Serializable {
         }
     }
 
+    private static void kill() {
+        alive = false;
+        Package.SlavePackage reply =
+            new Package.SlavePackage(Package.Command.KILL, true);
+
+        try {
+            os.writeObject(reply);
+        } catch(IOException e) {
+            System.out.println(e);
+        }
+
+        return;
+    }
 }
