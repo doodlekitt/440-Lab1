@@ -1,10 +1,10 @@
 import java.io.*;
 
-public class TransactionFileInputStream extends java.io.InputStream implements java.io.Serializable {
+public class TransactionalFileInputStream extends java.io.InputStream implements java.io.Serializable {
     private long pos = 0;
     private String file_name;
     
-    public TransactionFileInputStream(String filename){
+    public TransactionalFileInputStream(String filename){
 	super(); // needed?
 	file_name = filename;
     }

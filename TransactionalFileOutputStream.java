@@ -1,12 +1,12 @@
 import java.io.*;
 import java.lang.*;
 
-public class TransactionFileOutputStream extends java.io.OutputStream implements java.io.Serializable {
+public class TransactionalFileOutputStream extends java.io.OutputStream implements java.io.Serializable {
 
     private long pos = 0;
     private String file_name;
 
-    public TransactionFileOutputStream (String filename){
+    public TransactionalFileOutputStream (String filename) {
 	super(); // needed?
 	file_name = filename;
     }

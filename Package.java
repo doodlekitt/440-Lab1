@@ -16,11 +16,10 @@ public class Package {
 
         private Command command;
         // For a new process
-        private Constructor constructor;
-        private String[] args;
+        private MigratableProcess process;
         // For migrating a process
         private int target;
-        private int process;
+        private int thread;
         // For starting a proces
         private String path;
 
@@ -30,17 +29,16 @@ public class Package {
         }
 
         // For NEW
-        public PMPackage(Command com, Constructor construct, String[] arg){
-            this.command = com;
-            this.constructor = construct;
-            this.args = arg;
+        public PMPackage(Command command, MigratableProcess process){
+            this.command = command;
+            this.process = process;
         }
 
         // For MIGRATE
-        public PMPackage(Command com, int tar, int proc) {
+        public PMPackage(Command com, int tar, int thread) {
             this.command = com;
             this.target = tar;
-            this.process = proc;
+            this.thread = thread;
         }
 
         // For START
@@ -54,20 +52,16 @@ public class Package {
             return this.command;
         }
 
-        public Constructor constructor() {
-            return this.constructor;
-        }
-
-        public String[] args() {
-            return this.args;
+        public MigratableProcess process() {
+            return this.process;
         }
 
         public int target(){
             return this.target;
         }
 
-        public int process(){
-            return this.process;
+        public int thread(){
+            return this.thread;
         }
 
         public String path() {

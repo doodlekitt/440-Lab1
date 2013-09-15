@@ -29,43 +29,45 @@ public class Slave implements java.io.Serializable {
 	else {
             pmHost = args[0];
             pmPort = Integer.valueOf(args[1]).intValue();
-            System.out.println("Connecting at " + pmHost + " " + pmPort);
 	}
 
-        // Set up sockets for listening and sending
+        // Connect to ProcessManager
 	try {
             PM = new Socket(pmHost, pmPort);
-            System.out.println("Connection successful");
-try {
-    Thread.sleep(1000);
-} catch(InterruptedException ex) {
-    Thread.currentThread().interrupt();
-}
-            is = new ObjectInputStream(PM.getInputStream());
-            os = new ObjectOutputStream(PM.getOutputStream());
 	} catch (IOException e) {
-cation: class ProcessManager
-ProcessManager.java:198: error: cannot find symbol
-            
 	    System.out.println(e);
+            return;
 	}
 
+        System.out.println("Connection successful");
+
         Package.PMPackage recieve = null;
+        Package.SlavePackage send = null;
 
         while(alive) {
             try {
+                is = new ObjectInputStream(PM.getInputStream());
                 recieve = (Package.PMPackage)is.readObject();
             }
-            catch (ClassNotFoundException e) {
+            catch (IOException | ClassNotFoundException e) {
                 System.out.println(e);
             }
 
             if (recieve != null) {
                 switch (recieve.command()) {
-                    case KILL: kill();
+                    case KILL: send = kill();
+                         break;
+                    case NEW: send = newThread(recieve);
                          break;
                     default: break;
                 }
+                try {
+                    os = new ObjectOutputStream(PM.getOutputStream());
+                    os.writeObject(send);
+                } catch (IOException e) {
+                    System.out.println(e);
+                }
+                recieve = null;
             }
         }
 
@@ -78,17 +80,23 @@ ProcessManager.java:198: error: cannot find symbol
         }
     }
 
-    private static void kill() {
+    private static Package.SlavePackage kill() {
         alive = false;
-        Package.SlavePackage reply =
-            new Package.SlavePackage(Package.Command.KILL, true);
+        return new Package.SlavePackage(Package.Command.KILL, true);
+    }
 
-        try {
-            os.writeObject(reply);
-        } catch(IOException e) {
-            System.out.println(e);
+    private static Package.SlavePackage newThread(Package.PMPackage recieve) {
+        boolean success = true;
+
+        if (recieve == null || recieve.process() == null) {
+            // Return failure
+            success = false;
+        } else {
+                Runnable task = recieve.process();
+                Thread thread = new Thread(task);
+                thread.start();
         }
 
-        return;
+        return new Package.SlavePackage(Package.Command.NEW, success);
     }
 }
