@@ -1,6 +1,5 @@
 import java.io.*;
-import java.net.Socket;
-import java.net.ServerSocket;
+import java.net.*;
 import java.util.Arrays;
 import java.util.Hashtable;
 import java.lang.*;
@@ -12,8 +11,31 @@ public class ProcessManager {
     private static int port = 0;
     private static ServerSocket server = null;
 
-    private static Hashtable<Integer, Socket> clients =
-        new Hashtable<Integer, Socket>();
+    public static class ObjectIO {
+        private Socket socket;
+        private ObjectInputStream is;
+        private ObjectOutputStream os;
+
+        public ObjectIO (Socket socket, ObjectInputStream is,
+                              ObjectOutputStream os) {
+            this.socket = socket;
+            this.is = is;
+            this.os = os;
+        }
+
+        public Socket socket() {
+            return this.socket;
+        }
+        public ObjectInputStream is() {
+            return this.is;
+        }
+        public ObjectOutputStream os() {
+            return this.os;
+        }
+    }
+
+    private static Hashtable<Integer, ObjectIO> clients =
+        new Hashtable<Integer, ObjectIO>();
 
     public static void main (String[] args) throws IOException {
 
@@ -47,12 +69,8 @@ public class ProcessManager {
 		    break;
 		}
 		else{
-		    // execute should probably also take the os so that you can
-		    // send appropriate messages based on the command
 		    execute(command);
 		}
-
-		//probably here we add listening on the socket for stuff
 	    }
 	} catch (IOException e) {
 	    System.out.println(e);
@@ -60,7 +78,16 @@ public class ProcessManager {
 
 	// Clean up is last
         accept.stop();
+        Package.PMPackage killPackage =
+            new Package.PMPackage(Package.Command.KILL);
 	try {
+            for(Integer key : clients.keySet()) {
+                if(clients.get(key) != null &&
+                   clients.get(key).socket() != null) {
+                    // Kill the slaves
+                    sendPackage(key.intValue(), killPackage);
+                }
+            }
             server.close();
             br.close();
         } catch (IOException e) {
@@ -77,12 +104,18 @@ public class ProcessManager {
         }
 
         public void run() {
-            Socket clientSocket = null;
-            while(flag){
-                try{
-                    clientSocket = server.accept();
-                    // Read from socket
-                    clients.put(clientSocket.getPort(), clientSocket);
+            Socket client = null;
+            ObjectInputStream is = null;
+            ObjectOutputStream os = null;
+            ObjectIO value = null;
+            while(flag) {
+                try {
+                    client = server.accept();
+                    is = new ObjectInputStream(client.getInputStream());
+                    os = new ObjectOutputStream(client.getOutputStream());
+                    os.flush();
+                    value = new ObjectIO(client, is, os);
+                    clients.put(client.getPort(), value);
                 } catch (IOException e) {
                     // Don't print exception when stopping thread
                     if(flag) {
@@ -98,20 +131,30 @@ public class ProcessManager {
     }
 
     public static void execute(String command) {
-        String port = "";
+        int port = -1;
         Package.PMPackage send = null;
 
         String[] args = command.split(" ");
 
-        if(command.startsWith("list")) {
+        if(command.startsWith("slaves")) {
             list_slaves();
-        } else if(command.startsWith("kill")) {
+        } else if(command.startsWith("threads")) {
+            if(args.length != 2) {
+                System.out.println("Expect command of the form:");
+                System.out.println("threads <slave port>");
+                return;
+            }
+
+            port = Integer.valueOf(args[1]).intValue();
+            send = new Package.PMPackage(Package.Command.THREADS);       
+        }
+        else if(command.startsWith("kill")) {
             if(args.length < 2) {
                 // TODO: Add error message
                 return;
             }
 
-            port = args[1];
+            port = Integer.valueOf(args[1]).intValue();
             send = new Package.PMPackage(Package.Command.KILL);
 
         } else if(command.startsWith("new")){
@@ -120,7 +163,7 @@ public class ProcessManager {
                 return;
             }
 
-            port = args[1];
+            port =  Integer.valueOf(args[1]).intValue();
 
 	    // check if valid class
             Class<?> c = null;
@@ -139,9 +182,12 @@ public class ProcessManager {
 
             MigratableProcess mp = null;
             String[] process_args = Arrays.copyOfRange(args, 3, args.length);
+            for(int i = 0; i < process_args.length; i++) {
+                System.out.println(process_args[i]);
+            }
             try {
                 mp = (MigratableProcess)c.getConstructor(String[].class)
-                     .newInstance((Object[])process_args);
+                     .newInstance((Object)process_args);
             } catch(NoSuchMethodException | InstantiationException |
                     IllegalAccessException | InvocationTargetException e) {
                 System.out.println(e);
@@ -156,40 +202,38 @@ public class ProcessManager {
 	     System.out.println("Invalid Command");
 	}
 
-        if(port != "" && send != null) {
+        if(port >= 0 && send != null) {
             sendPackage(port, send);
         }
 
         return;
     }
 
-    private static void sendPackage(String portString, Package.PMPackage send) {
-        ObjectOutputStream os = null;
-        ObjectInputStream is = null;
-        Package.SlavePackage recieve = null;
-
-        int port = Integer.valueOf(portString).intValue();
+    private static void sendPackage(int port, Package.PMPackage send) {
+        // Check if valid port number
         if(!clients.containsKey(port)) {
             System.out.println("Invalid port number.");
             return;
         }
-        Socket slave = clients.get(port); 
+        ObjectIO slave = clients.get(port);
+        // Check that sockets and io are non-null 
+        if(slave.socket() == null || slave.is() == null || slave.os() == null) {
+            System.out.println("Slave not functional");
+            return;
+        }
 
+        Package.SlavePackage recieve = null;
         try {
-            os = new ObjectOutputStream(slave.getOutputStream());
-            is = new ObjectInputStream(slave.getInputStream());
-
-            os.writeObject(send);
+            System.out.println("Sending...");
+            slave.os().writeObject(send);
 
             try {
-                recieve = (Package.SlavePackage)is.readObject();
+                recieve = (Package.SlavePackage)slave.is().readObject();
             }
             catch (ClassNotFoundException e) {
                 System.out.println(e);
             }
-
-            is.close();
-            os.close();
+            System.out.println("Recieved reply");
         } catch (IOException e) {
             System.out.println(e);
         }
@@ -197,7 +241,7 @@ public class ProcessManager {
         processReply(recieve);
 
         if (recieve != null) {
-            // Remove this statement
+            // TODO: Remove this statement
             System.out.println(recieve.success());
             if (recieve.command() == Package.Command.KILL &&
                 recieve.success() == true) {
@@ -211,6 +255,9 @@ public class ProcessManager {
             return;
         }
         switch (reply.command()) {
+            case THREADS: if(reply.message() != null)
+                              System.out.print(reply.message());
+                          break;
             default: break;
         }
     }
@@ -218,7 +265,7 @@ public class ProcessManager {
     private static void list_slaves() {
         System.out.println("Printing slaves:");
         for (Integer key : clients.keySet()) {
-            System.out.println("Slave " + key + ": " + clients.get(key));
+            System.out.println("Slave " + key);
         }
         return;
     }

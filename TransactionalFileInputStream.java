@@ -20,7 +20,7 @@ public class TransactionalFileInputStream extends java.io.InputStream implements
 	
     }
 
-    public synchronized int read(byte[] b) throws IOException{
+    public synchronized int read(byte[] b) throws IOException {
 	int ans;
 	RandomAccessFile reader = new RandomAccessFile(this.file_name, "r");
 	reader.seek(pos);

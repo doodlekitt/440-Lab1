@@ -9,7 +9,7 @@ public class Package {
      * QUERY: Requests information about slave state
      */
     public enum Command {
-        KILL, NEW, MIGRATE, QUERY, START;
+        KILL, NEW, MIGRATE, START, THREADS;
     }
 
     public static class PMPackage implements Serializable{
@@ -23,7 +23,7 @@ public class Package {
         // For starting a proces
         private String path;
 
-        // For KILL or QUERY
+        // For KILL or THREADS
         public PMPackage(Command com) {
             this.command = com;
         }
@@ -72,6 +72,7 @@ public class Package {
     public static class SlavePackage implements Serializable {
 
         private boolean success; // true if command executed successfully
+        private String message; // message to print to user
         private Command command;
         private int target;
         private String path;
@@ -79,6 +80,13 @@ public class Package {
         // For use after NEW or failed MIGRATE
         public SlavePackage (Command com, boolean suc) {
             this.command = com;
+            this.success = suc;
+        }
+
+        // Sends a message with response
+        public SlavePackage (Command com, String msg, boolean suc) {
+            this.command = com;
+            this.message = msg;
             this.success = suc;
         }
 
@@ -92,6 +100,10 @@ public class Package {
 
         public boolean success() {
             return this.success;
+        }
+
+        public String message() {
+            return this.message;
         }
 
         public Command command() {

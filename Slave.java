@@ -11,14 +11,16 @@ public class Slave implements java.io.Serializable {
 
     private static boolean alive = true;
 
-    private static String pmHost = "";
-    private static int pmPort = 0;
-
-    private static Socket PM = null;
-    private static ObjectInputStream is = null;
-    private static ObjectOutputStream os = null;
+    private static Hashtable<Long, Thread> threads =
+        new Hashtable<Long, Thread>();
 
     public static void main(String args[]) throws IOException {
+
+        String pmHost = "";
+        int pmPort = 0;
+        Socket PM = null;
+        ObjectInputStream is = null;
+        ObjectOutputStream os = null;
 
         // Parse args
 	if(args.length < 2) {
@@ -39,30 +41,34 @@ public class Slave implements java.io.Serializable {
             return;
 	}
 
-        System.out.println("Connection successful");
-
         Package.PMPackage recieve = null;
         Package.SlavePackage send = null;
+        os = new ObjectOutputStream(PM.getOutputStream());
+        os.flush();
+        is = new ObjectInputStream(PM.getInputStream());
 
         while(alive) {
             try {
-                is = new ObjectInputStream(PM.getInputStream());
                 recieve = (Package.PMPackage)is.readObject();
             }
-            catch (IOException | ClassNotFoundException e) {
+            catch (IOException e) {
+                System.out.println(e);
+                return;
+            } catch ( ClassNotFoundException e) {
                 System.out.println(e);
             }
 
             if (recieve != null) {
                 switch (recieve.command()) {
                     case KILL: send = kill();
-                         break;
+                               break;
                     case NEW: send = newThread(recieve);
-                         break;
+                              break;
+                    case THREADS: send = listThreads(recieve);
+                                  break;
                     default: break;
                 }
                 try {
-                    os = new ObjectOutputStream(PM.getOutputStream());
                     os.writeObject(send);
                 } catch (IOException e) {
                     System.out.println(e);
@@ -72,9 +78,9 @@ public class Slave implements java.io.Serializable {
         }
 
         try {
-            PM.close();
             is.close();
             os.close();
+            PM.close();
         } catch (IOException e) {
             System.out.println(e);
         }
@@ -85,16 +91,29 @@ public class Slave implements java.io.Serializable {
         return new Package.SlavePackage(Package.Command.KILL, true);
     }
 
+    private static Package.SlavePackage listThreads(Package.PMPackage recieve) {
+        String message = "Printing Threads:\n";
+        for (Long key : threads.keySet()) {
+            message.concat("Threads "+key+": "+threads.get(key).getName()+"\n");
+        }
+
+        return new Package.SlavePackage(Package.Command.THREADS, message, true);
+    }
+
     private static Package.SlavePackage newThread(Package.PMPackage recieve) {
         boolean success = true;
+        Runnable task = null;
+        Thread thread = null;
 
         if (recieve == null || recieve.process() == null) {
             // Return failure
             success = false;
         } else {
-                Runnable task = recieve.process();
-                Thread thread = new Thread(task);
-                thread.start();
+            System.out.println("TEST1");
+            task = recieve.process();
+            thread = new Thread(task);
+            threads.put(thread.getId(), thread);
+            thread.start();
         }
 
         return new Package.SlavePackage(Package.Command.NEW, success);
