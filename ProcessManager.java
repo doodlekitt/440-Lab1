@@ -191,15 +191,23 @@ public class ProcessManager {
             try {
                 mp = (MigratableProcess)c.getConstructor(String[].class)
                      .newInstance((Object)process_args);
-            } catch(NoSuchMethodException | InstantiationException |
-                    IllegalAccessException | InvocationTargetException e) {
+            } catch(Exception e) {
                 System.out.println(e);
                 return;
             }
 
             send = new Package.PMPackage(Package.Command.NEW, mp);
 
-	} else if (command.startsWith("query")){
+	} else if (command.startsWith("migrate")){
+	     if(args.length != 4){
+		System.out.println("Expect commands of form: migrate <source> <thread> <target>");
+		return;
+	     }
+	     port =  Integer.valueOf(args[1]).intValue();
+	     long threadnum = Long.valueOf(args[2]).longValue();
+	     int targetport = Integer.valueOf(args[3]).intValue(); 
+
+	     send = new Package.PMPackage(Package.Command.MIGRATE, targetport, threadnum); 
 
 	} else {
 	     System.out.println("Invalid Command");
@@ -261,6 +269,12 @@ public class ProcessManager {
             case THREADS: if(reply.message() != null)
                               System.out.print(reply.message());
                           break;
+	    case MIGRATE: if(reply == null || !reply.success()){
+			      System.out.println("Failed Migrate");
+			  } else {
+                              startProcess(reply);
+                          }
+                          break;
             default: break;
         }
     }
@@ -271,5 +285,11 @@ public class ProcessManager {
             System.out.println("Slave " + key);
         }
         return;
+    }
+
+    private static void startProcess(Package.SlavePackage reply) {
+        int port = reply.target();
+        Package.PMPackage send = new Package.PMPackage(Package.Command.START, reply.path());
+        sendPackage(port, send);
     }
 }

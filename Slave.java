@@ -2,6 +2,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintStream;
+import java.io.FileOutputStream;
+import java.io.FileInputStream;
 import java.lang.ClassNotFoundException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -67,6 +69,10 @@ public class Slave implements java.io.Serializable {
                     case THREADS: send = listThreads(recieve);
                                   System.out.println(send.message());
                                   break;
+		    case MIGRATE: send = migrate(recieve);
+				  break;
+		    case START: send = startThread(recieve);
+				break;
                     default: break;
                 }
                 try {
@@ -85,6 +91,51 @@ public class Slave implements java.io.Serializable {
         } catch (IOException e) {
             System.out.println(e);
         }
+    }
+
+    private static Package.SlavePackage startThread(Package.PMPackage recieve) {
+	boolean success = true;
+	String filepath = recieve.path();
+	
+	try{
+	    FileInputStream fs = new FileInputStream(filepath);
+	    ObjectInputStream infile = new ObjectInputStream(fs);
+	
+	    Thread mp = (Thread) infile.readObject();
+
+	    mp.run();
+	    threads.put((mp.getId()), mp);
+	
+	    infile.close();
+	    fs.close();
+	} catch (Exception e) {
+	    success = false;
+	    System.out.println(e);
+	}
+	return new Package.SlavePackage(Package.Command.START, success);
+    }
+
+    private static Package.SlavePackage migrate(Package.PMPackage recieve) {
+	boolean success = true;
+        String filename = "thread"+recieve.target()+recieve.thread()+".ser";
+
+	try{
+	    FileOutputStream fs = new FileOutputStream(filename);
+	    ObjectOutputStream outfile = new ObjectOutputStream(fs);
+
+	    Thread mp = threads.get(recieve.thread());
+	    threads.remove(recieve.thread());
+	    mp.suspend();
+
+	    outfile.writeObject(mp); 
+	    outfile.close();
+	    fs.close();
+	    }
+	catch (IOException e) {
+	    success = false;
+	    System.out.println(e);
+	}
+	return new Package.SlavePackage(Package.Command.MIGRATE, recieve.target(), filename, success);
     }
 
     private static Package.SlavePackage kill() {
