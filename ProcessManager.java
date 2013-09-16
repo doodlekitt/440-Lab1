@@ -1,7 +1,6 @@
 import java.io.*;
 import java.net.*;
-import java.util.Arrays;
-import java.util.Hashtable;
+import java.util.*;
 import java.lang.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -81,9 +80,13 @@ public class ProcessManager {
         Package.PMPackage killPackage =
             new Package.PMPackage(Package.Command.KILL);
 	try {
-            for(Integer key : clients.keySet()) {
-                if(clients.get(key) != null &&
-                   clients.get(key).socket() != null) {
+            // Kill all slaves in hashtable
+            Enumeration e = clients.keys();
+            while(e.hasMoreElements()) {
+                Integer key = (Integer)e.nextElement();
+                ObjectIO io = clients.get(key);
+                if(io != null &&
+                    io.socket() != null) {
                     // Kill the slaves
                     sendPackage(key.intValue(), killPackage);
                 }
