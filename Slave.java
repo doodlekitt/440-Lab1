@@ -14,15 +14,15 @@ public class Slave implements java.io.Serializable {
     private static boolean alive = true;
 
     private static class MPThread {
-        private Runnable process;
+        private MigratableProcess process;
         private Thread thread;
 
-        public MPThread(Runnable process, Thread thread) {
+        public MPThread(MigratableProcess process, Thread thread) {
             this.process = process;
             this.thread = thread;
         }
 
-        public Runnable process() {
+        public MigratableProcess process() {
             return process;
         }
 
@@ -32,7 +32,7 @@ public class Slave implements java.io.Serializable {
     }
 
     private static Hashtable<Long, MPThread> threads =
-        new Hashtable<Long, Thread>();
+        new Hashtable<Long, MPThread>();
 
     public static void main(String args[]) throws IOException {
 
@@ -120,10 +120,12 @@ public class Slave implements java.io.Serializable {
 	    FileInputStream fs = new FileInputStream(filepath);
 	    ObjectInputStream infile = new ObjectInputStream(fs);
 	
-	    Thread mp = (Thread) infile.readObject();
+	    MigratableProcess mp = (MigratableProcess) infile.readObject();
 
-	    mp.run();
-	    threads.put((mp.getId()), mp);
+	    Thread thread = new Thread(mp);
+            MPThread m = new MPThread(mp, thread);
+            threads.put(thread.getId(), m);
+            thread.start();
 	
 	    infile.close();
 	    fs.close();
@@ -142,8 +144,9 @@ public class Slave implements java.io.Serializable {
 	    FileOutputStream fs = new FileOutputStream(filename);
 	    ObjectOutputStream outfile = new ObjectOutputStream(fs);
 
-	    Thread mp = threads.get(recieve.thread());
+	    MPThread mpt = threads.get(recieve.thread());
 	    threads.remove(recieve.thread());
+	    MigratableProcess mp = mpt.process();
 	    mp.suspend();
 
 	    outfile.writeObject(mp); 
@@ -174,7 +177,7 @@ public class Slave implements java.io.Serializable {
 
     private static Package.SlavePackage newThread(Package.PMPackage recieve) {
         boolean success = true;
-        Runnable task = null;
+        MigratableProcess task = null;
         Thread thread = null;
         MPThread mpThread = null;
 
@@ -184,7 +187,7 @@ public class Slave implements java.io.Serializable {
         } else {
             task = recieve.process();
             thread = new Thread(task);
-            mpThread = new mpThread(task, thread);
+            mpThread = new MPThread(task, thread);
             threads.put(thread.getId(), mpThread);
             thread.start();
         }
