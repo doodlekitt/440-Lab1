@@ -13,7 +13,25 @@ public class Slave implements java.io.Serializable {
 
     private static boolean alive = true;
 
-    private static Hashtable<Long, Thread> threads =
+    private static class MPThread {
+        private Runnable process;
+        private Thread thread;
+
+        public MPThread(Runnable process, Thread thread) {
+            this.process = process;
+            this.thread = thread;
+        }
+
+        public Runnable process() {
+            return process;
+        }
+
+        public Thread thread() {
+            return thread;
+        }
+    }
+
+    private static Hashtable<Long, MPThread> threads =
         new Hashtable<Long, Thread>();
 
     public static void main(String args[]) throws IOException {
@@ -158,6 +176,7 @@ public class Slave implements java.io.Serializable {
         boolean success = true;
         Runnable task = null;
         Thread thread = null;
+        MPThread mpThread = null;
 
         if (recieve == null || recieve.process() == null) {
             // Return failure
@@ -165,10 +184,9 @@ public class Slave implements java.io.Serializable {
         } else {
             task = recieve.process();
             thread = new Thread(task);
-            threads.put(thread.getId(), thread);
+            mpThread = new mpThread(task, thread);
+            threads.put(thread.getId(), mpThread);
             thread.start();
-            System.out.println("Thread:"+ thread.getId());
-            System.out.println(threads.toString());
         }
 
         return new Package.SlavePackage(Package.Command.NEW, success);

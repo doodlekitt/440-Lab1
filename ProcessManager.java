@@ -10,7 +10,7 @@ public class ProcessManager {
     private static int port = 0;
     private static ServerSocket server = null;
 
-    public static class ObjectIO {
+    private static class ObjectIO {
         private Socket socket;
         private ObjectInputStream is;
         private ObjectOutputStream os;
