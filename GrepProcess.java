@@ -62,7 +62,6 @@ public class GrepProcess implements MigratableProcess
 	public void suspend()
 	{
 		suspending = true;
-		while (suspending);
 	}
 
 }

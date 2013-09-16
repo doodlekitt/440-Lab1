@@ -38,7 +38,6 @@ public class MathProcess implements MigratableProcess
     public void suspend()
     {
 	suspended = true;
-	while(suspended);
     }
 
 }

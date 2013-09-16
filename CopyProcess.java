@@ -48,7 +48,6 @@ public class CopyProcess implements MigratableProcess
     public void suspend()
     {
 	suspended = true;
-	while(suspended);
     }
 
 
