@@ -207,8 +207,7 @@ public class ProcessManager {
 	     long threadnum = Long.valueOf(args[2]).longValue();
 	     int targetport = Integer.valueOf(args[3]).intValue(); 
 
-	     send = new Package.PMPackage(Package.Command.MIGRATE, targetport, threadnum); 
-
+	     send = new Package.PMPackage(Package.Command.MIGRATE, targetport,                                            threadnum); 
 	} else {
 	     System.out.println("Invalid Command");
 	}

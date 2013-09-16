@@ -66,10 +66,11 @@ public class Slave implements java.io.Serializable {
                                break;
                     case NEW: send = newThread(recieve);
                               break;
-                    case THREADS: send = listThreads(recieve);
-                                  System.out.println(send.message());
+                    case THREADS: System.out.println("Listing threads...");
+                                  send = listThreads(recieve);
                                   break;
-		    case MIGRATE: send = migrate(recieve);
+		    case MIGRATE: System.out.println("Migrating...");
+                                  send = migrate(recieve);
 				  break;
 		    case START: send = startThread(recieve);
 				break;
@@ -130,12 +131,13 @@ public class Slave implements java.io.Serializable {
 	    outfile.writeObject(mp); 
 	    outfile.close();
 	    fs.close();
-	    }
+        }
 	catch (IOException e) {
 	    success = false;
 	    System.out.println(e);
 	}
-	return new Package.SlavePackage(Package.Command.MIGRATE, recieve.target(), filename, success);
+	return new Package.SlavePackage(Package.Command.MIGRATE,
+                                        recieve.target(), filename, success);
     }
 
     private static Package.SlavePackage kill() {
@@ -146,11 +148,8 @@ public class Slave implements java.io.Serializable {
     private static Package.SlavePackage listThreads(Package.PMPackage recieve) {
         String message = "Printing Threads:\n";
         for (Long key : threads.keySet()) {
-            System.out.println("In for loop");
             message = message + "Threads "+key+"\n";
         }
-
-        System.out.println(threads.toString());
 
         return new Package.SlavePackage(Package.Command.THREADS, message, true);
     }
@@ -160,12 +159,10 @@ public class Slave implements java.io.Serializable {
         Runnable task = null;
         Thread thread = null;
 
-        System.out.println("TEST3");
         if (recieve == null || recieve.process() == null) {
             // Return failure
             success = false;
         } else {
-            System.out.println("TEST1");
             task = recieve.process();
             thread = new Thread(task);
             threads.put(thread.getId(), thread);
